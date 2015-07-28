@@ -49,7 +49,7 @@ class Api {
         // Initialize MySQL connection
         $this->mysql_init();
 
-        if (in_array($method, array("login", "signup", "getPlaces","getPersonByNumber"))) {
+        if (in_array($method, array("login", "signup", "getPlaces", "getPersonByNumber", "logaccess"))) {
             $this->api_response = $this->{"method_" . $method}();
         } else {
             if ($method == NULL || $method == "") {
@@ -110,9 +110,10 @@ class Api {
                         $personFound->comments = $row["comments"];
                         $response->person = $personFound;
                     }
+                } else {
+                    $response->message = "no person found";
                 }
-                else{$response->message = "no person found";}
-                
+
                 $this->json_responses->makeResponse($response);
             } else {
                 $this->json_responses->makeError("Exception", "Incorrect data, pleace retry");
@@ -307,6 +308,51 @@ class Api {
             $this->json_responses->makeResponse($response);
         }
 
+        return $this->json_responses->getStringResponseOut();
+    }
+
+    /**
+     * Log Access Method
+     */
+    private function method_logaccess() {
+
+//        if (isset($this->post_data->user_number)) {
+//            if (empty($this->post_data->user_number)) {
+//                $this->json_responses->makeError("FormValidateException", "Important. Parameter user_number required");
+//            }
+//        } else {
+//            $this->json_responses->makeError("FormValidateException", "parameter user_number is not received");
+//        }
+
+        $this->response_validate = $this->json_responses->getStringResponseOut();
+        if (!empty($this->response_validate)) {
+            return $this->response_validate;
+        } else {
+            $this->response_validate = "";
+        }
+
+        if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
+
+            $valToInsert = array(
+                'idPerson' => $this->post_data->idPerson
+                , 'idPlace' => $this->post_data->idPlace
+                , 'accessType' => $this->post_data->accessType
+                , 'date' => $this->post_data->date
+                , 'updateBy' => $this->post_data->updateBy
+                , 'updateOn' => date("Y-m-d H:i:s")
+                , 'comments' => $this->post_data->comments
+            );
+            $returnVal = $this->mysql->insert('acc_accesslog', $valToInsert);
+
+            if (!$returnVal) {
+                $response = new StdClass();
+                $response->status = "ok";
+                $response->message = "log access success ok";
+                $this->json_responses->makeResponse($response);
+            } else {
+                $this->json_responses->makeError("LogAccessException", "Incorrect data, pleace retry");
+            }
+        }
         return $this->json_responses->getStringResponseOut();
     }
 

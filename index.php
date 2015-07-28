@@ -1,5 +1,4 @@
 <?php
-
 // Requirement
 // JSONString for responses in JSON - https://github.com/paulomcnally/JSONResponse-php
 // DatabaseMySQLi for database mysql connect - https://github.com/paulomcnally/DatabaseMysqli-php
@@ -8,6 +7,7 @@ require 'load.php';
 
 $method = ( isset($_GET['method']) ) ? @$_GET['method'] : NULL;
 
+//echo "Debug 1: ";
 //$post_data_string = ( isset( $_POST['post_data_string'] ) ) ? @$_POST['post_data_string'] : NULL;
 // Only from debug GET
 $post_data_string = ( isset($_GET['post_data_string']) ) ? @$_GET['post_data_string'] : NULL;
