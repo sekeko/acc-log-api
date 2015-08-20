@@ -49,7 +49,7 @@ class Api {
         // Initialize MySQL connection
         $this->mysql_init();
 
-        if (in_array($method, array("login", "signup", "getPlaces", "getPersonByNumber", "logaccess", "addperson","getAccessLog", "addplace"))) {
+        if (in_array($method, array("login", "signup", "getPlaces", "getPersonByNumber", "logaccess", "addperson", "getAccessLog", "addplace", "getUsers", "setPersonComment"))) {
             $this->api_response = $this->{"method_" . $method}();
         } else {
             if ($method == NULL || $method == "") {
@@ -92,7 +92,9 @@ class Api {
 
         if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
 
-            $result = $this->mysql->getResults("SELECT `id`, `number`, `fullname`, `birth`, `expiry`, `gender`, `comments`, `isSystemUser`, `updatedBy`, `updatedOn` FROM `acc_person` WHERE number = '" . $this->mysql->_real_escape($this->post_data->user_number) . "' ");
+            $result = $this->mysql->getResults("SELECT accPerson.id, accPerson.number, accPerson.fullname, accPerson.birth, accPerson.expiry, accPerson.gender, accPerson.comments, accPerson.isSystemUser, accPerson.updatedBy, accPerson.updatedOn, accOne.comments as 'lastcomment' FROM acc_accesslog accOne
+INNER JOIN acc_person accPerson ON accOne.idPerson = accPerson.id
+WHERE accPerson.number =  '" . $this->mysql->_real_escape($this->post_data->user_number) . "' ORDER by accOne.date DESC LIMIT 1");
 
             if (!is_null($result)) {
                 $response = new StdClass();
@@ -108,6 +110,7 @@ class Api {
                         $personFound->expiry = $row["expiry"];
                         $personFound->gender = $row["gender"];
                         $personFound->comments = $row["comments"];
+                        $personFound->lastcomment = $row["lastcomment"];
                         $response->person = $personFound;
                     }
                 } else {
@@ -341,8 +344,8 @@ class Api {
                 , 'idPlace' => $this->post_data->idPlace
                 , 'accessType' => $this->post_data->accessType
                 , 'date' => $this->post_data->date
-                , 'updateBy' => $this->post_data->updatedBy
-                , 'updateOn' => date("Y-m-d H:i:s")
+                , 'updatedBy' => $this->post_data->updatedBy
+                , 'updatedOn' => date("Y-m-d H:i:s")
                 , 'comments' => $this->post_data->comments
             );
             $returnVal = $this->mysql->insert('acc_accesslog', $valToInsert);
@@ -423,7 +426,7 @@ class Api {
         }
         return $this->json_responses->getStringResponseOut();
     }
-    
+
     /**
      * Get AccessLog
      */
@@ -461,7 +464,7 @@ class Api {
         }
         return $this->json_responses->getStringResponseOut();
     }
-    
+
     /**
      * Log Access Method
      */
@@ -503,6 +506,84 @@ class Api {
         }
         return $this->json_responses->getStringResponseOut();
     }
+
+    /**
+     * Get Users
+     */
+    private function method_getUsers() {
+
+        if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
+
+            $users = $this->mysql->getResults("SELECT id,number, fullname, comments, CASE isSystemUser WHEN 0 THEN 'NO' WHEN 1 THEN 'ADMIN' WHEN 2 THEN 'SUPERVISOR' WHEN 3 THEN 'OPERADOR' ELSE NULL END as 'isSystemUser' FROM `acc_person");
+
+            $usersFound = [];
+
+            if (!is_null($users)) {
+                $response = new StdClass();
+                $response->message = "ok";
+                if ($users->num_rows > 0) {
+                    $response->rows = $users->num_rows;
+                    while ($row = $users->fetch_assoc()) {
+                        $userFound = new StdClass();
+                        $userFound->id = $row["id"];
+                        $userFound->number = $row["number"];
+                        $userFound->fullname = $row["fullname"];
+                        $userFound->isSystemUser = $row["isSystemUser"];
+                        $userFound->comments = $row["comments"];
+                        array_push($usersFound, $userFound);
+                    }
+                }
+
+                $users->close();
+
+                $response->users = $usersFound;
+
+                $this->json_responses->makeResponse($response);
+            } else {
+                $this->json_responses->makeError("PlacesException", "Error getting users");
+            }
+        }
+        return $this->json_responses->getStringResponseOut();
+    }
+
+    /**
+     * Set User Comment
+     */
+    private function method_setPersonComment() {
+
+        $this->response_validate = $this->json_responses->getStringResponseOut();
+        if (!empty($this->response_validate)) {
+            return $this->response_validate;
+        } else {
+            $this->response_validate = "";
+        }
+
+        if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
+
+            $valToUpdate = array(
+                'comments' => $this->post_data->comments
+                , 'updatedBy' => $this->post_data->updatedBy
+                , 'updatedOn' => date("Y-m-d H:i:s")
+            );
+            
+            $valWhere = array(
+              'id' => $this->post_data->idPerson
+            );
+            
+            $returnVal = $this->mysql->update('acc_person', $valToUpdate,$valWhere);
+
+            if (!$returnVal) {
+                $response = new StdClass();
+                $response->status = "ok";
+                $response->message = "person updated success ok";
+                $this->json_responses->makeResponse($response);
+            } else {
+                $this->json_responses->makeError("PersonException", "Incorrect data, pleace retry");
+            }
+        }
+        return $this->json_responses->getStringResponseOut();
+    }
+
 }
 
 ?>

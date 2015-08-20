@@ -1,51 +1,130 @@
--- MySQL Administrator dump 1.4
---
--- ------------------------------------------------------
--- Server version	5.0.92-log
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
-
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
 
 --
--- Create schema andauth
+-- Base de datos: `bitacoradb`
 --
+CREATE DATABASE IF NOT EXISTS `bitacoradb` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `bitacoradb`;
 
-CREATE DATABASE IF NOT EXISTS andauth;
-USE andauth;
-
---
--- Definition of table `user`
---
-
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
-  `user_id` int(10) unsigned NOT NULL auto_increment,
-  `user_first_name` varchar(45) NOT NULL,
-  `user_last_name` varchar(45) NOT NULL,
-  `user_email` varchar(255) NOT NULL,
-  `user_password` varchar(32) NOT NULL,
-  `user_registered` datetime NOT NULL,
-  `user_token` varchar(6) NOT NULL,
-  PRIMARY KEY  (`user_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+-- --------------------------------------------------------
 
 --
--- Dumping data for table `user`
+-- Estructura de tabla para la tabla `acc_accesslog`
 --
 
+DROP TABLE IF EXISTS `acc_accesslog`;
+CREATE TABLE IF NOT EXISTS `acc_accesslog` (
+  `id` int(11) NOT NULL,
+  `idPerson` int(11) NOT NULL,
+  `idPlace` int(11) NOT NULL,
+  `accessType` char(3) NOT NULL,
+  `date` datetime NOT NULL,
+  `updatedBy` int(11) NOT NULL,
+  `updatedOn` datetime NOT NULL,
+  `comments` varchar(255) NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+--
+-- Estructura de tabla para la tabla `acc_person`
+--
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+DROP TABLE IF EXISTS `acc_person`;
+CREATE TABLE IF NOT EXISTS `acc_person` (
+  `id` int(11) NOT NULL,
+  `number` varchar(10) NOT NULL,
+  `fullname` varchar(200) NOT NULL,
+  `birth` date NOT NULL,
+  `expiry` date NOT NULL,
+  `gender` varchar(10) NOT NULL,
+  `comments` varchar(255) NOT NULL,
+  `isSystemUser` tinyint(1) NOT NULL,
+  `updatedBy` int(11) NOT NULL,
+  `updatedOn` datetime NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `acc_person`
+--
+
+INSERT INTO `acc_person` (`id`, `number`, `fullname`, `birth`, `expiry`, `gender`, `comments`, `isSystemUser`, `updatedBy`, `updatedOn`) VALUES
+(1, '1111', 'admin', '2015-06-22', '2015-06-22', 'M', 'admin system', 1, 1, '2015-06-22 00:00:00');
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `acc_place`
+--
+
+DROP TABLE IF EXISTS `acc_place`;
+CREATE TABLE IF NOT EXISTS `acc_place` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `comments` varchar(255) NOT NULL,
+  `updatedBy` int(11) NOT NULL,
+  `updatedOn` datetime NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `acc_place`
+--
+
+INSERT INTO `acc_place` (`id`, `name`, `comments`, `updatedBy`, `updatedOn`) VALUES
+(1, 'SYSTEM', 'SYSTEM', 1, '0000-00-00 00:00:00');
+
+--
+-- Índices para tablas volcadas
+--
+
+--
+-- Indices de la tabla `acc_accesslog`
+--
+ALTER TABLE `acc_accesslog`
+  ADD PRIMARY KEY (`id`), ADD KEY `idPerson` (`idPerson`,`idPlace`,`updatedBy`), ADD KEY `updatedBy` (`updatedBy`), ADD KEY `idPlace` (`idPlace`);
+
+--
+-- Indices de la tabla `acc_person`
+--
+ALTER TABLE `acc_person`
+  ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `number` (`number`);
+
+--
+-- Indices de la tabla `acc_place`
+--
+ALTER TABLE `acc_place`
+  ADD PRIMARY KEY (`id`), ADD KEY `updatedBy` (`updatedBy`);
+
+--
+-- AUTO_INCREMENT de las tablas volcadas
+--
+
+--
+-- AUTO_INCREMENT de la tabla `acc_accesslog`
+--
+ALTER TABLE `acc_accesslog`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
+--
+-- AUTO_INCREMENT de la tabla `acc_person`
+--
+ALTER TABLE `acc_person`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
+--
+-- AUTO_INCREMENT de la tabla `acc_place`
+--
+ALTER TABLE `acc_place`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
+--
+-- Restricciones para tablas volcadas
+--
+
+--
+-- Filtros para la tabla `acc_accesslog`
+--
+ALTER TABLE `acc_accesslog`
+ADD CONSTRAINT `acc_accesslog_ibfk_1` FOREIGN KEY (`idPerson`) REFERENCES `acc_person` (`id`),
+ADD CONSTRAINT `acc_accesslog_ibfk_2` FOREIGN KEY (`idPlace`) REFERENCES `acc_place` (`id`),
+ADD CONSTRAINT `acc_accesslog_ibfk_3` FOREIGN KEY (`updatedBy`) REFERENCES `acc_person` (`id`);
+
+--
+-- Filtros para la tabla `acc_place`
+--
+ALTER TABLE `acc_place`
+ADD CONSTRAINT `acc_place_ibfk_1` FOREIGN KEY (`updatedBy`) REFERENCES `acc_person` (`id`);
