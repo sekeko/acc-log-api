@@ -49,7 +49,7 @@ class Api {
         // Initialize MySQL connection
         $this->mysql_init();
 
-        if (in_array($method, array("login", "signup", "getPlaces", "getPersonByNumber", "logaccess", "addperson", "getAccessLog", "addplace", "getUsers", "setPersonComment"))) {
+        if (in_array($method, array("login", "signup", "getPlaces", "getPersonByNumber", "logaccess", "addperson", "getAccessLog", "addplace", "getUsers", "setPersonComment", "deletePlace"))) {
             $this->api_response = $this->{"method_" . $method}();
         } else {
             if ($method == NULL || $method == "") {
@@ -609,6 +609,38 @@ WHERE accPerson.number =  '" . $this->mysql->_real_escape($this->post_data->user
                 $this->json_responses->makeResponse($response);
             } else {
                 $this->json_responses->makeError("PersonException", "Incorrect data, pleace retry");
+            }
+        }
+        return $this->json_responses->getStringResponseOut();
+    }
+
+    /**
+     * DELETE PLACE
+     */
+    private function method_deletePlace() {
+
+        $this->response_validate = $this->json_responses->getStringResponseOut();
+        if (!empty($this->response_validate)) {
+            return $this->response_validate;
+        } else {
+            $this->response_validate = "";
+        }
+
+        if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
+
+            $valToDelete = array(
+                'id' => $this->post_data->idPlace
+            );
+
+            $returnVal = $this->mysql->delete('acc_place', $valToDelete);
+
+            if (!$returnVal) {
+                $response = new StdClass();
+                $response->status = "ok";
+                $response->message = "place deleted success ok";
+                $this->json_responses->makeResponse($response);
+            } else {
+                $this->json_responses->makeError("PlaceException", "Incorrect data, pleace retry");
             }
         }
         return $this->json_responses->getStringResponseOut();
