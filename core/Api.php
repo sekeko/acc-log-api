@@ -92,8 +92,8 @@ class Api {
 
         if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
 
-            $result = $this->mysql->getResults("SELECT accPerson.id, accPerson.number, accPerson.fullname, accPerson.birth, accPerson.expiry, accPerson.gender, accPerson.comments, accPerson.isSystemUser, accPerson.updatedBy, accPerson.updatedOn, accOne.comments as 'lastcomment' FROM acc_accesslog accOne
-INNER JOIN acc_person accPerson ON accOne.idPerson = accPerson.id
+            $result = $this->mysql->getResults("SELECT accPerson.id, accPerson.number, accPerson.fullname, accPerson.birth, accPerson.expiry, accPerson.gender, accPerson.comments, accPerson.isSystemUser, accPerson.updatedBy, accPerson.updatedOn, IFNULL(accOne.comments,'') as 'lastcomment' FROM acc_accesslog accOne
+RIGHT JOIN acc_person accPerson ON accOne.idPerson = accPerson.id
 WHERE accPerson.number =  '" . $this->mysql->_real_escape($this->post_data->user_number) . "' ORDER by accOne.date DESC LIMIT 1");
 
             if (!is_null($result)) {
@@ -188,17 +188,46 @@ WHERE accPerson.number =  '" . $this->mysql->_real_escape($this->post_data->user
 
         if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
 
-            $id = $this->mysql->getVar("SELECT id FROM `acc_person` WHERE number = '" . $this->mysql->_real_escape($this->post_data->user_number) . "' AND isSystemUser = 1 ");
+            $result = $this->mysql->getResults("SELECT id,number,fullname,birth,expiry,gender,isSystemUser,comments  FROM `acc_person` WHERE number = '" . $this->mysql->_real_escape($this->post_data->user_number) . "' AND isSystemUser = 1 ");
 
-            if (!is_null($id)) {
+            if (!is_null($result)) {
                 $response = new StdClass();
                 $response->status = "ok";
-                $response->message = "Login success ok";
-                $response->id = $id;
-                $this->json_responses->makeResponse($response);
-            } else {
-                $this->json_responses->makeError("LoginException", "Incorrect data, pleace retry");
+                if ($result->num_rows > 0) {
+                    //$response->message = "Person found";
+                    while ($row = $result->fetch_assoc()) {
+                        $personFound = new StdClass();
+                        $personFound->id = $row["id"];
+                        $personFound->number = $row["number"];
+                        $personFound->fullname = $row["fullname"];
+                        $personFound->birth = $row["birth"];
+                        $personFound->expiry = $row["expiry"];
+                        $personFound->gender = $row["gender"];
+                        $personFound->isSystemUser = $row["isSystemUser"];
+                        $personFound->comments = $row["comments"];
+                        $response->user = $personFound;
+                    }
+                } else {
+                    $response->message = "no user found";
+                    $personFound = new StdClass();
+                    $personFound->id = 0;
+                    $response->user = $personFound;
+                }
             }
+            $this->json_responses->makeResponse($response);
+            /*
+              if (!is_null($id)) {
+              $response = new StdClass();
+              $response->status = "ok";
+              $response->message = "Login success ok";
+              $response->id = $id;
+              $response->isSystemUser = isSystemUser
+              $this->json_responses->makeResponse($response);
+              } else {
+              $this->json_responses->makeError("LoginException", "Incorrect data, pleace retry");
+              }
+             * 
+             */
         }
         return $this->json_responses->getStringResponseOut();
     }
@@ -434,7 +463,7 @@ WHERE accPerson.number =  '" . $this->mysql->_real_escape($this->post_data->user
 
         if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
 
-            $places = $this->mysql->getResults("SELECT al.`date` as 'FECHA',al.`accessType` AS 'TIPO', ap.name AS 'LUGAR', ape.fullname AS 'NOMBRE' FROM `acc_accesslog` al INNER JOIN acc_place ap ON al.IdPlace = ap.id INNER JOIN acc_person ape ON al.idPerson = ape.id");
+            $places = $this->mysql->getResults("SELECT al.`date` as 'FECHA',al.`accessType` AS 'TIPO', ap.name AS 'LUGAR', ape.fullname AS 'NOMBRE', al.comments AS 'COMENTARIO' FROM `acc_accesslog` al INNER JOIN acc_place ap ON al.IdPlace = ap.id INNER JOIN acc_person ape ON al.idPerson = ape.id WHERE al.date > '" . $this->mysql->_real_escape($this->post_data->fromDate) . "' and al.date < '" . $this->mysql->_real_escape($this->post_data->toDate) . "'");
 
             $placesFound = [];
 
@@ -449,6 +478,7 @@ WHERE accPerson.number =  '" . $this->mysql->_real_escape($this->post_data->user
                         $placeFound->TIPO = $row["TIPO"];
                         $placeFound->LUGAR = $row["LUGAR"];
                         $placeFound->NOMBRE = $row["NOMBRE"];
+                        $placeFound->COMENTARIO = $row["COMENTARIO"];
                         array_push($placesFound, $placeFound);
                     }
                 }
@@ -565,12 +595,12 @@ WHERE accPerson.number =  '" . $this->mysql->_real_escape($this->post_data->user
                 , 'updatedBy' => $this->post_data->updatedBy
                 , 'updatedOn' => date("Y-m-d H:i:s")
             );
-            
+
             $valWhere = array(
-              'id' => $this->post_data->idPerson
+                'id' => $this->post_data->idPerson
             );
-            
-            $returnVal = $this->mysql->update('acc_person', $valToUpdate,$valWhere);
+
+            $returnVal = $this->mysql->update('acc_person', $valToUpdate, $valWhere);
 
             if (!$returnVal) {
                 $response = new StdClass();

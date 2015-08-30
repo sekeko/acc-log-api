@@ -128,3 +128,11 @@ ADD CONSTRAINT `acc_accesslog_ibfk_3` FOREIGN KEY (`updatedBy`) REFERENCES `acc_
 --
 ALTER TABLE `acc_place`
 ADD CONSTRAINT `acc_place_ibfk_1` FOREIGN KEY (`updatedBy`) REFERENCES `acc_person` (`id`);
+
+
+--
+-- USUARIO 
+--
+GRANT USAGE ON *.* TO 'bitacorausrdos'@'localhost' IDENTIFIED BY PASSWORD '*E2D086B0906C8217A48779C3FEF5862E7F926ABA';
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON `bitacoradb`.* TO 'bitacorausrdos'@'localhost';
