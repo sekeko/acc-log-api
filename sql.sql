@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `acc_person` (
   `expiry` date NOT NULL,
   `gender` varchar(10) NOT NULL,
   `comments` varchar(255) NOT NULL,
-  `isSystemUser` tinyint(1) NOT NULL,
+  `isSystemUser` tinyint(1) NOT NULL COMMENT 'Admin = 1, Supervisor = 2, Operator = 3',
   `updatedBy` int(11) NOT NULL,
   `updatedOn` datetime NOT NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
@@ -47,7 +47,9 @@ CREATE TABLE IF NOT EXISTS `acc_person` (
 --
 
 INSERT INTO `acc_person` (`id`, `number`, `fullname`, `birth`, `expiry`, `gender`, `comments`, `isSystemUser`, `updatedBy`, `updatedOn`) VALUES
-(1, '1111', 'admin', '2015-06-22', '2015-06-22', 'M', 'admin system', 1, 1, '2015-06-22 00:00:00');
+(1, '1111', 'admin', '2015-06-22', '2015-06-22', 'M', 'usuario administrador', 1, 1, '2015-06-22 00:00:00')
+,(2, '2222', 'supervisor', '2015-06-22', '2015-06-22', 'M', 'usuario supervisor', 2, 1, '2015-06-22 00:00:00')
+,(3, '3333', 'operador', '2015-06-22', '2015-06-22', 'M', 'usuario operador', 3, 1, '2015-06-22 00:00:00');
 -- --------------------------------------------------------
 
 --
@@ -61,7 +63,7 @@ CREATE TABLE IF NOT EXISTS `acc_place` (
   `comments` varchar(255) NOT NULL,
   `updatedBy` int(11) NOT NULL,
   `updatedOn` datetime NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
 --
 -- Volcado de datos para la tabla `acc_place`
@@ -105,7 +107,7 @@ ALTER TABLE `acc_accesslog`
 -- AUTO_INCREMENT de la tabla `acc_person`
 --
 ALTER TABLE `acc_person`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
 --
 -- AUTO_INCREMENT de la tabla `acc_place`
 --

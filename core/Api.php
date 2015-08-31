@@ -49,7 +49,7 @@ class Api {
         // Initialize MySQL connection
         $this->mysql_init();
 
-        if (in_array($method, array("login", "signup", "getPlaces", "getPersonByNumber", "logaccess", "addperson", "getAccessLog", "addplace", "getUsers", "setPersonComment", "deletePlace"))) {
+        if (in_array($method, array("login", "signup", "getPlaces", "getPersonByNumber", "logaccess", "addperson", "getAccessLog", "addplace", "getUsers", "setPersonComment", "deletePlace", "setUserType"))) {
             $this->api_response = $this->{"method_" . $method}();
         } else {
             if ($method == NULL || $method == "") {
@@ -188,7 +188,7 @@ WHERE accPerson.number =  '" . $this->mysql->_real_escape($this->post_data->user
 
         if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
 
-            $result = $this->mysql->getResults("SELECT id,number,fullname,birth,expiry,gender,isSystemUser,comments  FROM `acc_person` WHERE number = '" . $this->mysql->_real_escape($this->post_data->user_number) . "' AND isSystemUser = 1 ");
+            $result = $this->mysql->getResults("SELECT id,number,fullname,birth,expiry,gender,isSystemUser,comments  FROM `acc_person` WHERE number = '" . $this->mysql->_real_escape($this->post_data->user_number) . "' AND isSystemUser IN (1,2,3) ");
 
             if (!is_null($result)) {
                 $response = new StdClass();
@@ -609,6 +609,44 @@ WHERE accPerson.number =  '" . $this->mysql->_real_escape($this->post_data->user
                 $this->json_responses->makeResponse($response);
             } else {
                 $this->json_responses->makeError("PersonException", "Incorrect data, pleace retry");
+            }
+        }
+        return $this->json_responses->getStringResponseOut();
+    }
+
+    /**
+     * Set User Comment
+     */
+    private function method_setUserType() {
+
+        $this->response_validate = $this->json_responses->getStringResponseOut();
+        if (!empty($this->response_validate)) {
+            return $this->response_validate;
+        } else {
+            $this->response_validate = "";
+        }
+
+        if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
+
+            $valToUpdate = array(
+                'isSystemUser' => $this->post_data->userType
+                , 'updatedBy' => $this->post_data->updatedBy
+                , 'updatedOn' => date("Y-m-d H:i:s")
+            );
+
+            $valWhere = array(
+                'id' => $this->post_data->idPerson
+            );
+
+            $returnVal = $this->mysql->update('acc_person', $valToUpdate, $valWhere);
+
+            if (!$returnVal) {
+                $response = new StdClass();
+                $response->status = "ok";
+                $response->message = "user updated success ok";
+                $this->json_responses->makeResponse($response);
+            } else {
+                $this->json_responses->makeError("UserException", "Incorrect data, pleace retry");
             }
         }
         return $this->json_responses->getStringResponseOut();
