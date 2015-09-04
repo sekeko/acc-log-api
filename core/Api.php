@@ -544,7 +544,7 @@ WHERE accPerson.number =  '" . $this->mysql->_real_escape($this->post_data->user
 
         if ($this->json_responses->getStringResponseOut() == "" || $this->json_responses->getStringResponseOut() == NULL) {
 
-            $users = $this->mysql->getResults("SELECT id,number, fullname, comments, CASE isSystemUser WHEN 0 THEN 'NO' WHEN 1 THEN 'ADMIN' WHEN 2 THEN 'SUPERVISOR' WHEN 3 THEN 'OPERADOR' ELSE NULL END as 'isSystemUser' FROM `acc_person");
+            $users = $this->mysql->getResults("SELECT id,number, fullname, comments, CASE isSystemUser WHEN 0 THEN 'NO' WHEN 1 THEN 'ADMIN' WHEN 2 THEN 'SUPERVISOR' WHEN 3 THEN 'OPERADOR' ELSE NULL END as 'isSystemUser' FROM acc_person");
 
             $usersFound = [];
 
