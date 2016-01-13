@@ -19,10 +19,14 @@ if (!is_null($post_data_string)) {
 } else {
     $post_data_object = new stdClass();
 }
-
-//echo "Debug: ";
-//echo print_r( $post_data_object );
-
+/*
+echo "Debug: ";
+echo $mysql_database_name;
+echo '<br>';
+echo $mysql_user;
+echo '<br>';
+echo $mysql_password;
+*/
 $api = new Api($mysql_user, $mysql_password, $mysql_host, $mysql_database_name, $method, $post_data_object);
 echo $api->api_response;
 ?>
